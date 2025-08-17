@@ -1,41 +1,36 @@
-# app/services/llm.py
+from typing import Literal  
+from openai import OpenAI 
+from app.config import TEXT_MODEL
+from app.prompts.roles import build_prompt 
 
-from openai import OpenAI
-from app.config import TEXT_MODEL 
-
-# OpenAI client
 client = OpenAI()
 
-def ask_teacher(question: str, context: str = "") -> str:
+# role must be one of these
+Role = Literal["kid", "expert", "teacher"]
+
+def ask_role(role: Role, instruction: str, context: str = "") -> str:
     """
-    Ask the 'Teacher' role to explain something in a clear, structured way.
-    
+    Ask one of the roles (kid, expert, teacher) to respond.
+
     Parameters:
-        question (str): what I want the teacher to explain
-        context (str): optional prior context (e.g., what I've been teaching wiht feynman technique)
+        role (str): 'kid', 'expert', or 'teacher'
+        instruction (str): the user's request (e.g., 'any questions?')
+        context (str): prior explanation or transcript
 
     Returns:
-        str: a plain language teacher-style explanation
+        str: role-specific reply
     """
-    # system prompt for teacher role
-    system_prompt = (
-        "You are a teacher. Answer as if you're explaining to a smart student.\n"
-        "Start with a three-sentence definition. Then give 2-3 key points. End with a concrete example.\n"
-        "Avoid jargon unless it's explained. Be concise and clear."
-    )
+    # get the system prompt and user prompt for that role
+    system, user = build_prompt(role, instruction, context)
 
-    # build user prompt
-    user_prompt = f"Explain this topic: {question}"
-    if context:
-        user_prompt += f"\n\nContext:\n{context}"
-
-    # get response from gpt
+    # send it to the gpt Responses API
     response = client.responses.create(
-        model=TEXT_MODEL,  # gpt4 or 4o
+        model=TEXT_MODEL,
         input=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "system", "content": system},
+            {"role": "user", "content": user}
         ]
     )
 
-    return response.output_text.strip()  # return clean explanation
+    # return the text (no formatting or json)
+    return response.output_text.strip()
