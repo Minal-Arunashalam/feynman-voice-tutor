@@ -30,7 +30,7 @@ def build_prompt(role: Role, user_instruction: str, recent_context: str) -> Tupl
         # if not asking for "any question", prompt goes to teacher role
         user = f"Follow this instruction in your role: {instruction}\n\n{ctx}"
 
-    # choose the right system and user prompt based on role
+    # return the right system and user prompt based on role
     if role == "kid":
         return SYSTEM_KID, user
     elif role == "expert":
