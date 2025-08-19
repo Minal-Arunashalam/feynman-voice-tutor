@@ -2,12 +2,12 @@ from openai import OpenAI
 import sounddevice as sd
 from scipy.io.wavfile import write
 import tempfile
+import os
+from app.config import STT_MODEL
 from dotenv import load_dotenv
 load_dotenv()
-import os
 
 client = OpenAI()
-STT_MODEL = os.getenv("FEYNMAN_STT_MODEL", "gpt-4o-mini-transcribe")
 
 # record audio from microphone and save as wav
 #duration in seconds, fs is standard sample rate
