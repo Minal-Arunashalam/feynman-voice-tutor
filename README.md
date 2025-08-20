@@ -2,6 +2,7 @@
 The app continuously records your speech, transcribes it with OpenAI’s speech-to-text, and updates a live transcript. 
 
 When you address a role—**Kid**, **Expert**, or **Teacher**—your request is routed through role-specific prompts to an LLM, which replies concisely, then speaks the response aloud using text-to-speech.
+
 The **Kid** role asks simple questions to uncover gaps in your understanding ("if you can't explain it to a six year old, then you don't understand it yourself").
 The **Expert** asks deeper, more specific questions to challenge your reasoning and push for depth.
 The **Teacher** is there to give you explanations, examples, and definitions when you get stuck.
