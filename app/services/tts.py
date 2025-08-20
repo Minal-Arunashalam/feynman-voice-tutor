@@ -1,6 +1,8 @@
+# app/services/tts.py
+
 import os
 import tempfile
-import simpleaudio as sa #audio plays from laptop, not in browser
+import simpleaudio as sa
 from openai import OpenAI
 from app.config import TTS_MODEL, TTS_VOICE
 
@@ -8,33 +10,28 @@ client = OpenAI()
 
 def speak(text: str) -> None:
     """
-    Convert text to speech using OpenAI TTS and play it synchronously.
+    Convert text to speech with OpenAI and play it.
+    Saves audio as a temporary .wav and plays with simpleaudio.
     """
-    #create speech file from text, in wav format
-    audio = client.audio.speech.create(
-        model=TTS_MODEL,
-        voice=TTS_VOICE,
-        input=text,
-        format="wav"
-    )
-    # get the audio bytes from the response
-    audio_bytes = audio.read()
-
-    # write audio bytes to a temp wav file so we can play it
     tmp_path = None
     try:
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-            f.write(audio_bytes)
-            tmp_path = f.name
-        # get the wave object and play it
+        # Create streaming TTS response and save as WAV
+        with client.audio.speech.with_streaming_response.create(
+            model=TTS_MODEL,
+            voice=TTS_VOICE,
+            input=text,
+            response_format="wav",
+        ) as response:
+            tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+            response.stream_to_file(tmp.name)
+            tmp_path = tmp.name
+
+        # Play WAV
         wave_obj = sa.WaveObject.from_wave_file(tmp_path)
         play_obj = wave_obj.play()
-        # block until file is done playing
-        play_obj.wait_done()  
+        play_obj.wait_done()
+
     finally:
-        # clean up temp file
         if tmp_path:
-            try:
-                os.remove(tmp_path)
-            except Exception:
-                pass
+            try: os.remove(tmp_path)
+            except Exception: pass
